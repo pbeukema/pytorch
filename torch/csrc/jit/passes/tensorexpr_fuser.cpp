@@ -184,7 +184,7 @@ bool isSupported(Node* node) {
 
     // Value is either an int or a float (can occur from .item())
     for (Value* v : node->inputs()) {
-      if (v->type()->cast<NumberType>()) {
+      if (v->type()->castRaw<NumberType>()) {
         return false;
       }
     }
@@ -300,7 +300,7 @@ void RemoveProfileNodesAndSpecializeTypes(std::shared_ptr<Graph>& graph) {
 }
 
 void removeTensorTypeSpecialization(Value* v) {
-  if (!v->type()->cast<TensorType>()) {
+  if (!v->type()->castRaw<TensorType>()) {
     return;
   }
   // Constants & TensorExprGroup will always produce specialized tensor type,
@@ -804,7 +804,7 @@ class TensorExprFuser {
   }
 
   bool shapeIsKnown(Value* v) {
-    if (v->type()->cast<TensorType>()) {
+    if (v->type()->castRaw<TensorType>()) {
       if (!v->isCompleteTensor()) {
         return false;
       }
@@ -873,7 +873,7 @@ class TensorExprFuser {
     // clang-format on
 
     for (const Value* v : node->inputs()) {
-      if (auto const& tt = v->type()->cast<TensorType>()) {
+      if (auto* tt = v->type()->castRaw<TensorType>()) {
         auto const& st = tt->scalarType();
 
         // All tensors must be typed.
@@ -899,11 +899,11 @@ class TensorExprFuser {
         }
       } else if (node->isMemberOf(float_only_operator_set)) {
         // Check scalar operands of float-only ops.
-        if (!v->type()->cast<FloatType>()) {
+        if (!v->type()->castRaw<FloatType>()) {
           return false;
         }
       } else if (node->isMemberOf(int_only_operator_set)) {
-        if (!v->type()->cast<IntType>()) {
+        if (!v->type()->castRaw<IntType>()) {
           return false;
         }
       }
@@ -951,7 +951,7 @@ class TensorExprFuser {
     REQ(isFusableOnDevice(node));
 
     for (Value* input : node->inputs()) {
-      if (auto const& tt = input->type()->cast<TensorType>()) {
+      if (auto* tt = input->type()->castRaw<TensorType>()) {
         auto st = tt->scalarType();
         if (!st) {
           // All tensor types should be known.
@@ -1068,7 +1068,7 @@ class TensorExprFuser {
          ++it) {
       auto n = *it;
       if (n->kind() == prim::Constant &&
-          n->output()->type()->cast<TensorType>()) {
+          n->output()->type()->castRaw<TensorType>()) {
         auto constant =
             fusion_group->owningGraph()->insertConstant(*toIValue(n->output()));
         fusion_group->addInput(constant);
